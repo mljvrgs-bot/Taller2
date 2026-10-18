@@ -2,8 +2,12 @@ package com.caos.dominocaos.logic.model
 
 enum class PowerType {
     NONE,
-    DRAW_TWO,
-    REVERSE_TURN,
-    SKIP_TURN,
-    DOUBLE_POINTS
+    WILDCARD,
+    SKIP,
+    SWAP,
+    REVERSE;
+
+    companion object {
+        fun usable(): List<PowerType> = entries.filter { it != NONE }
+    }
 }
