@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.caos.dominocaos.ui.theme.DominoCaosTheme
 import com.google.firebase.FirebaseApp
 import androidx.activity.SystemBarStyle
-import com.caos.dominocaos.ui.screens.game.GameScreen
+import com.caos.dominocaos.ui.navigation.AppNavigation
 
 class MainActivity : ComponentActivity() {
 
@@ -43,7 +43,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DominoCaosTheme {
-                GameScreen(onLeave = { finish() })
+                AppNavigation()
             }
         }
     }
