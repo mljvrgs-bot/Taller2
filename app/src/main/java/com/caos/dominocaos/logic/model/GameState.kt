@@ -15,7 +15,9 @@ data class GameState(
     val winnerId: String? = null,
     val events: List<GameEvent> = emptyList(),
     val doublePointsNextTurn: Boolean = false,
-    val activePower: PowerType = PowerType.NONE
+    val activePower: PowerType = PowerType.NONE,
+    val hostId: String = "",
+    val started: Boolean = false
 ) {
     @get:Exclude
     val currentPlayer: Player?
