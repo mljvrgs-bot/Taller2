@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.caos.dominocaos.ui.theme.DominoCaosTheme
 import com.google.firebase.FirebaseApp
 import androidx.activity.SystemBarStyle
+import com.caos.dominocaos.ui.screens.game.GameScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -42,14 +43,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DominoCaosTheme {
-                Scaffold(
-                    modifier = Modifier.fillMaxSize()
-                ) { innerPadding ->
-                    FirebaseTestScreen(
-                        status = firebaseStatus,
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                GameScreen(onLeave = { finish() })
             }
         }
     }
