@@ -32,18 +32,20 @@ import com.caos.dominocaos.viewmodel.GameViewModel
 /** Pantalla de juego. Solo dibuja el estado y reenvia los toques al ViewModel. */
 @Composable
 fun GameScreen(
+    gameCode: String?,          // null = offline
     onLeave: () -> Unit,
     viewModel: GameViewModel = viewModel()
 ) {
-    val state by viewModel.ui.collectAsState()
+    val stateOrNull by viewModel.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
 
-    // Los rechazos del motor (jugada invalida, sin usos...) salen como snackbar.
-    LaunchedEffect(state.message) {
-        state.message?.let {
-            snackbar.showSnackbar(it)
-            viewModel.dismissMessage()
-        }
+    // Carga la partida una sola vez (offline u online segun el codigo).
+    LaunchedEffect(gameCode) { viewModel.start(gameCode) }
+
+    val state = stateOrNull
+    if (state == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Cargando...") }
+        return
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
