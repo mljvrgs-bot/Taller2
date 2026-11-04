@@ -29,15 +29,39 @@ class GameUiStateTest {
 
     @Test
     fun `solo se puede robar sin jugada valida y con fichas en el pozo`() {
-        assertTrue(ui(game(listOf(tile(0, 1)), listOf(tile(6, 6)), pile = listOf(tile(1, 1)))).canDraw)
-        assertFalse(ui(game(listOf(tile(4, 5)), listOf(tile(6, 6)), pile = listOf(tile(1, 1)))).canDraw)
+        assertTrue(
+            ui(
+                game(
+                    listOf(tile(0, 1)),
+                    listOf(tile(6, 6)),
+                    pile = listOf(tile(1, 1))
+                )
+            ).canDraw
+        )
+        assertFalse(
+            ui(
+                game(
+                    listOf(tile(4, 5)),
+                    listOf(tile(6, 6)),
+                    pile = listOf(tile(1, 1))
+                )
+            ).canDraw
+        )
         assertFalse(ui(game(listOf(tile(0, 1)), listOf(tile(6, 6)))).canDraw)
     }
 
     @Test
     fun `solo se puede pasar con el pozo vacio y sin jugada valida`() {
         assertTrue(ui(game(listOf(tile(0, 1)), listOf(tile(6, 6)))).canPass)
-        assertFalse(ui(game(listOf(tile(0, 1)), listOf(tile(6, 6)), pile = listOf(tile(1, 1)))).canPass)
+        assertFalse(
+            ui(
+                game(
+                    listOf(tile(0, 1)),
+                    listOf(tile(6, 6)),
+                    pile = listOf(tile(1, 1))
+                )
+            ).canPass
+        )
     }
 
     @Test

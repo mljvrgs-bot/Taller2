@@ -42,7 +42,13 @@ fun LoginScreen(
 
     AuthLayout(title = "Domino Caos", subtitle = "Inicia sesion para jugar", error = state.error) {
         AuthField(email, { email = it }, "Correo", KeyboardType.Email)
-        AuthField(password, { password = it }, "Contrasena", KeyboardType.Password, isPassword = true)
+        AuthField(
+            password,
+            { password = it },
+            "Contrasena",
+            KeyboardType.Password,
+            isPassword = true
+        )
         Button(
             onClick = { viewModel.signIn(email, password, onSuccess) },
             enabled = !state.loading,
@@ -65,8 +71,20 @@ fun RegisterScreen(
 
     AuthLayout(title = "Crear cuenta", subtitle = "Registrate para jugar", error = state.error) {
         AuthField(email, { email = it }, "Correo", KeyboardType.Email)
-        AuthField(password, { password = it }, "Contrasena", KeyboardType.Password, isPassword = true)
-        AuthField(confirm, { confirm = it }, "Confirmar contrasena", KeyboardType.Password, isPassword = true)
+        AuthField(
+            password,
+            { password = it },
+            "Contrasena",
+            KeyboardType.Password,
+            isPassword = true
+        )
+        AuthField(
+            confirm,
+            { confirm = it },
+            "Confirmar contrasena",
+            KeyboardType.Password,
+            isPassword = true
+        )
         Button(
             onClick = { viewModel.register(email, password, confirm, onSuccess) },
             enabled = !state.loading,
@@ -95,10 +113,18 @@ private fun AuthLayout(
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
             Text(title, style = MaterialTheme.typography.headlineLarge)
-            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             content()
             if (error != null) {
-                Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                Text(
+                    error,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

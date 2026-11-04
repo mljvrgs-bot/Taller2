@@ -1,5 +1,6 @@
 package com.caos.dominocaos.ui.screens.room
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.caos.dominocaos.viewmodel.RoomViewModel
-import androidx.activity.compose.BackHandler
 
 /** Sala de espera: codigo para compartir, jugadores conectados y boton de inicio para el anfitrion. */
 @Composable
@@ -43,19 +43,37 @@ fun RoomScreen(
 
     Scaffold { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
-            Text("Codigo de la sala", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(code, style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
+            Text(
+                "Codigo de la sala",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                code,
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
 
-            Text("Jugadores (${state.game?.players?.size ?: 0}/4)", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Jugadores (${state.game?.players?.size ?: 0}/4)",
+                style = MaterialTheme.typography.titleMedium
+            )
             state.game?.players?.forEach {
                 Text(if (it.id == state.game?.hostId) "${it.name} (anfitrion)" else it.name)
             }
 
             state.error?.let {
-                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                Text(
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
 
             if (state.isHost) {
@@ -65,7 +83,10 @@ fun RoomScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) { Text(if (state.canStart) "Iniciar partida" else "Esperando jugadores...") }
             } else {
-                Text("Esperando a que el anfitrion inicie...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    "Esperando a que el anfitrion inicie...",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             TextButton(onClick = { viewModel.leave(onLeave) }) { Text("Salir") }
         }

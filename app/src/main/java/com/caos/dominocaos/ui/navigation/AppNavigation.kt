@@ -33,13 +33,25 @@ fun AppNavigation() {
     ) {
         composable(Routes.LOGIN) {
             LoginScreen(
-                onSuccess = { nav.navigate(Routes.LOBBY) { popUpTo(Routes.LOGIN) { inclusive = true } } },
+                onSuccess = {
+                    nav.navigate(Routes.LOBBY) {
+                        popUpTo(Routes.LOGIN) {
+                            inclusive = true
+                        }
+                    }
+                },
                 onGoRegister = { nav.navigate(Routes.REGISTER) }
             )
         }
         composable(Routes.REGISTER) {
             RegisterScreen(
-                onSuccess = { nav.navigate(Routes.LOBBY) { popUpTo(Routes.LOGIN) { inclusive = true } } },
+                onSuccess = {
+                    nav.navigate(Routes.LOBBY) {
+                        popUpTo(Routes.LOGIN) {
+                            inclusive = true
+                        }
+                    }
+                },
                 onGoLogin = { nav.popBackStack() }
             )
         }
@@ -47,7 +59,13 @@ fun AppNavigation() {
             LobbyScreen(
                 onRoom = { code -> nav.navigate("room/$code") },
                 onPlayOffline = { nav.navigate(Routes.GAME_OFFLINE) },
-                onSignOut = { nav.navigate(Routes.LOGIN) { popUpTo(Routes.LOBBY) { inclusive = true } } }
+                onSignOut = {
+                    nav.navigate(Routes.LOGIN) {
+                        popUpTo(Routes.LOBBY) {
+                            inclusive = true
+                        }
+                    }
+                }
             )
         }
         composable(Routes.ROOM) { entry ->
@@ -55,7 +73,13 @@ fun AppNavigation() {
             RoomScreen(
                 code = code,
                 // Al iniciar, la sala se saca del historial para que "atras" no vuelva a ella.
-                onStarted = { nav.navigate("game/$code") { popUpTo(Routes.ROOM) { inclusive = true } } },
+                onStarted = {
+                    nav.navigate("game/$code") {
+                        popUpTo(Routes.ROOM) {
+                            inclusive = true
+                        }
+                    }
+                },
                 onLeave = { nav.popBackStack() }
             )
         }

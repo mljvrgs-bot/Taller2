@@ -1,6 +1,9 @@
 package com.caos.dominocaos.logic.engine
 
-import com.caos.dominocaos.logic.model.*
+import com.caos.dominocaos.logic.model.GameState
+import com.caos.dominocaos.logic.model.Player
+import com.caos.dominocaos.logic.model.PowerType
+import com.caos.dominocaos.logic.model.Tile
 import java.util.UUID
 import kotlin.random.Random
 
@@ -18,19 +21,29 @@ class GameEngine(
         gameId: String = UUID.randomUUID().toString()
     ): GameState {
         require(playerNames.size in 2..4) { "La partida debe tener entre 2 y 4 jugadores." }
-        require(playerNames.map { it.first }.toSet().size == playerNames.size) { "Los identificadores deben ser unicos." }
+        require(playerNames.map { it.first }
+            .toSet().size == playerNames.size) { "Los identificadores deben ser unicos." }
         require(handSize > 0) { "El tamano de la mano debe ser positivo." }
 
         val shuffled = Tile.doubleSixSet().shuffled(random)
         val players = playerNames.mapIndexed { index, pair ->
-            Player(id = pair.first, name = pair.second, hand = shuffled.drop(index * handSize).take(handSize))
+            Player(
+                id = pair.first,
+                name = pair.second,
+                hand = shuffled.drop(index * handSize).take(handSize)
+            )
         }
         val used = minOf(playerNames.size * handSize, shuffled.size)
         return GameState(
             gameId = gameId,
             players = players,
             drawPile = shuffled.drop(used),
-            events = listOf(EventManager.create("GAME_STARTED", "Comenzo una partida con ${players.size} jugadores."))
+            events = listOf(
+                EventManager.create(
+                    "GAME_STARTED",
+                    "Comenzo una partida con ${players.size} jugadores."
+                )
+            )
         )
     }
 
@@ -41,17 +54,33 @@ class GameEngine(
     fun cancelPower(state: GameState, playerId: String): GameState =
         PowerManager.cancel(state, playerId)
 
-    fun swapTile(state: GameState, playerId: String, ownTileId: String, opponentId: String): GameState =
+    fun swapTile(
+        state: GameState,
+        playerId: String,
+        ownTileId: String,
+        opponentId: String
+    ): GameState =
         PowerManager.swap(state, playerId, ownTileId, opponentId, random)
 
     // ---- Jugadas ----
-    fun playTile(state: GameState, playerId: String, tileId: String, side: BoardSide? = null): GameState {
+    fun playTile(
+        state: GameState,
+        playerId: String,
+        tileId: String,
+        side: BoardSide? = null
+    ): GameState {
         check(!state.finished) { "La partida ya termino." }
         val player = state.currentPlayer ?: error("No hay jugador activo.")
         check(player.id == playerId) { "No es el turno de este jugador." }
         check(state.activePower != PowerType.SWAP) { "Termina o cancela el Intercambio antes de jugar." }
-        val tile = player.hand.firstOrNull { it.id == tileId } ?: error("La ficha no esta en la mano del jugador.")
-        check(MoveValidator.canPlay(tile, state)) { "La ficha no coincide con ninguno de los extremos." }
+        val tile = player.hand.firstOrNull { it.id == tileId }
+            ?: error("La ficha no esta en la mano del jugador.")
+        check(
+            MoveValidator.canPlay(
+                tile,
+                state
+            )
+        ) { "La ficha no coincide con ninguno de los extremos." }
 
         val actualSide = side ?: when {
             state.board.isEmpty() -> BoardSide.RIGHT
@@ -59,7 +88,12 @@ class GameEngine(
             tile.matches(state.leftEnd ?: -1) -> BoardSide.LEFT
             else -> BoardSide.RIGHT
         }
-        check(actualSide in MoveValidator.validSides(tile, state)) { "La ficha no se puede colocar en ese extremo." }
+        check(
+            actualSide in MoveValidator.validSides(
+                tile,
+                state
+            )
+        ) { "La ficha no se puede colocar en ese extremo." }
 
         val oriented = when {
             state.board.isEmpty() -> tile
@@ -71,8 +105,10 @@ class GameEngine(
             actualSide == BoardSide.RIGHT -> state.board + oriented
             else -> listOf(oriented) + state.board
         }
-        val newLeft = if (state.board.isEmpty() || actualSide == BoardSide.LEFT) oriented.left else state.leftEnd
-        val newRight = if (state.board.isEmpty() || actualSide == BoardSide.RIGHT) oriented.right else state.rightEnd
+        val newLeft =
+            if (state.board.isEmpty() || actualSide == BoardSide.LEFT) oriented.left else state.leftEnd
+        val newRight =
+            if (state.board.isEmpty() || actualSide == BoardSide.RIGHT) oriented.right else state.rightEnd
         val remainingHand = player.hand.filterNot { it.id == tile.id }
         val gained = if (state.doublePointsNextTurn) tile.points * 2 else tile.points
         var players = state.players.map {
@@ -80,15 +116,25 @@ class GameEngine(
         }
         var events = EventManager.append(
             state.events,
-            EventManager.create("TILE_PLAYED", "${player.name} jugo ${tile.left}|${tile.right} (+$gained).", player.id)
+            EventManager.create(
+                "TILE_PLAYED",
+                "${player.name} jugo ${tile.left}|${tile.right} (+$gained).",
+                player.id
+            )
         )
 
         if (remainingHand.isEmpty()) {
-            val bonus = players.filterNot { it.id == player.id }.sumOf { o -> o.hand.sumOf(Tile::points) }
-            players = players.map { if (it.id == player.id) it.copy(score = it.score + bonus) else it }
+            val bonus =
+                players.filterNot { it.id == player.id }.sumOf { o -> o.hand.sumOf(Tile::points) }
+            players =
+                players.map { if (it.id == player.id) it.copy(score = it.score + bonus) else it }
             events = EventManager.append(
                 events,
-                EventManager.create("BONUS", "${player.name} se quedo sin fichas y suma $bonus puntos extra.", player.id)
+                EventManager.create(
+                    "BONUS",
+                    "${player.name} se quedo sin fichas y suma $bonus puntos extra.",
+                    player.id
+                )
             )
             return finish(
                 state.copy(
@@ -110,9 +156,15 @@ class GameEngine(
         val player = state.currentPlayer ?: error("No hay jugador activo.")
         check(player.id == playerId) { "No es el turno de este jugador." }
         check(state.drawPile.isNotEmpty()) { "No quedan fichas para robar." }
-        check(!MoveValidator.hasNaturalMove(player.hand, state)) { "Tienes una ficha valida: no puedes robar." }
+        check(
+            !MoveValidator.hasNaturalMove(
+                player.hand,
+                state
+            )
+        ) { "Tienes una ficha valida: no puedes robar." }
         val tile = state.drawPile.first()
-        val players = state.players.map { if (it.id == player.id) it.copy(hand = it.hand + tile) else it }
+        val players =
+            state.players.map { if (it.id == player.id) it.copy(hand = it.hand + tile) else it }
         return state.copy(
             players = players,
             drawPile = state.drawPile.drop(1),
@@ -128,7 +180,12 @@ class GameEngine(
         val player = state.currentPlayer ?: error("No hay jugador activo.")
         check(player.id == playerId) { "No es el turno de este jugador." }
         check(state.drawPile.isEmpty()) { "Si quedan fichas, el jugador debe robar antes de pasar." }
-        check(!MoveValidator.hasNaturalMove(player.hand, state)) { "El jugador tiene una ficha valida y no puede pasar." }
+        check(
+            !MoveValidator.hasNaturalMove(
+                player.hand,
+                state
+            )
+        ) { "El jugador tiene una ficha valida y no puede pasar." }
 
         val logged = state.copy(
             events = EventManager.append(
@@ -143,12 +200,16 @@ class GameEngine(
         val lowest = newState.players.minByOrNull { p -> p.hand.sumOf(Tile::points) }
         val updated = newState.players.map { p ->
             if (p.id != lowest?.id) p
-            else p.copy(score = p.score + newState.players.filterNot { it.id == p.id }.sumOf { o -> o.hand.sumOf(Tile::points) })
+            else p.copy(score = p.score + newState.players.filterNot { it.id == p.id }
+                .sumOf { o -> o.hand.sumOf(Tile::points) })
         }
         return finish(
             newState.copy(
                 players = updated,
-                events = EventManager.append(newState.events, EventManager.create("GAME_BLOCKED", "La partida quedo bloqueada."))
+                events = EventManager.append(
+                    newState.events,
+                    EventManager.create("GAME_BLOCKED", "La partida quedo bloqueada.")
+                )
             )
         )
     }
@@ -164,36 +225,51 @@ class GameEngine(
             activePower = PowerType.NONE,
             events = EventManager.append(
                 state.events,
-                EventManager.create("ABANDONED", "${leaver.name} abandono la partida. $result", playerId)
+                EventManager.create(
+                    "ABANDONED",
+                    "${leaver.name} abandono la partida. $result",
+                    playerId
+                )
             )
         )
     }
 
     private fun finish(state: GameState): GameState {
         val winner = winnerOf(state.players)
-        val message = if (winner != null) "Fin de la partida: gana ${winner.name} con ${winner.score} puntos."
-        else "Fin de la partida: empate."
+        val message =
+            if (winner != null) "Fin de la partida: gana ${winner.name} con ${winner.score} puntos."
+            else "Fin de la partida: empate."
         return state.copy(
             finished = true,
             winnerId = winner?.id,
             activePower = PowerType.NONE,
-            events = EventManager.append(state.events, EventManager.create("GAME_FINISHED", message, winner?.id))
+            events = EventManager.append(
+                state.events,
+                EventManager.create("GAME_FINISHED", message, winner?.id)
+            )
         )
     }
 
     fun winnerOf(players: List<Player>): Player? {
-        val sorted = players.sortedWith(compareByDescending<Player> { it.score }.thenBy { it.powersUsed })
+        val sorted =
+            players.sortedWith(compareByDescending<Player> { it.score }.thenBy { it.powersUsed })
         val best = sorted.firstOrNull() ?: return null
         val tied = sorted.count { it.score == best.score && it.powersUsed == best.powersUsed }
         return if (tied > 1) null else best
     }
 
     private fun advanceTurn(state: GameState): GameState {
-        val direction = if (state.activePower == PowerType.REVERSE) -state.direction else state.direction
+        val direction =
+            if (state.activePower == PowerType.REVERSE) -state.direction else state.direction
         val steps = if (state.activePower == PowerType.SKIP) 2 else 1
         val n = state.players.size
         val next = ((state.currentPlayerIndex + direction * steps) % n + n) % n
-        return state.copy(currentPlayerIndex = next, direction = direction, activePower = PowerType.NONE, turn = state.turn + 1)
+        return state.copy(
+            currentPlayerIndex = next,
+            direction = direction,
+            activePower = PowerType.NONE,
+            turn = state.turn + 1
+        )
     }
 
     private fun afterTurn(state: GameState): GameState {
@@ -202,7 +278,10 @@ class GameEngine(
                 state.copy(
                     events = EventManager.append(
                         state.events,
-                        EventManager.create("MAX_ROUNDS", "Se alcanzo el maximo de ${state.maxRounds} rondas.")
+                        EventManager.create(
+                            "MAX_ROUNDS",
+                            "Se alcanzo el maximo de ${state.maxRounds} rondas."
+                        )
                     )
                 )
             )

@@ -54,7 +54,12 @@ class GameViewModel : ViewModel() {
             onChange = { game ->
                 // Cada cambio remoto (jugada del rival, reinicio...) reemplaza el estado local.
                 if (game != null && game.players.any { it.id == uid }) {
-                    _ui.update { cur -> cur?.copy(game = game) ?: GameUiState(game = game, myId = uid) }
+                    _ui.update { cur ->
+                        cur?.copy(game = game) ?: GameUiState(
+                            game = game,
+                            myId = uid
+                        )
+                    }
                 }
             },
             onError = { e -> _ui.update { it?.copy(message = "Error de conexion: ${e.message}") } }
@@ -63,7 +68,8 @@ class GameViewModel : ViewModel() {
 
     private fun newOfflineState(): GameUiState {
         val game = engine.newGame(listOf("me" to "Tu", "bot" to "Rival"))
-        val withBot = game.copy(players = game.players.map { if (it.id == "bot") it.copy(bot = true) else it })
+        val withBot =
+            game.copy(players = game.players.map { if (it.id == "bot") it.copy(bot = true) else it })
         return GameUiState(game = withBot, myId = "me")
     }
 
@@ -97,7 +103,8 @@ class GameViewModel : ViewModel() {
 
         // Con Intercambio activo, la ficha tocada es la que se entrega.
         if (game.activePower == PowerType.SWAP) {
-            val opponent = s.opponents.first() // TODO: elegir oponente si hay mas de 2 jugadores
+            // Con varios rivales, el intercambio es con uno al azar que tenga fichas.
+            val opponent = s.opponents.filter { it.hand.isNotEmpty() }.randomOrNull() ?: return
             act { g, me -> engine.swapTile(g, me, tile.id, opponent.id) }
             return
         }
@@ -109,7 +116,14 @@ class GameViewModel : ViewModel() {
         when {
             sides.isEmpty() -> _ui.value = s.copy(message = "Esa ficha no se puede jugar")
             // Un solo lado posible (o tablero vacio): se juega directo.
-            game.board.isEmpty() || sides.size == 1 -> act { g, me -> engine.playTile(g, me, tile.id, sides.first()) }
+            game.board.isEmpty() || sides.size == 1 -> act { g, me ->
+                engine.playTile(
+                    g,
+                    me,
+                    tile.id,
+                    sides.first()
+                )
+            }
             // Dos lados posibles: se selecciona y el jugador toca el "+" del lado que quiere.
             else -> _ui.value = s.copy(selectedTileId = tile.id)
         }

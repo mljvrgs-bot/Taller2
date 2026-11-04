@@ -30,7 +30,13 @@ class PowerManagerTest {
     @Test
     fun `no se pueden activar dos poderes a la vez`() {
         val active = engine.activatePower(threePlayers(), "a", PowerType.SKIP)
-        assertFails("ya hay un poder activo") { engine.activatePower(active, "a", PowerType.REVERSE) }
+        assertFails("ya hay un poder activo") {
+            engine.activatePower(
+                active,
+                "a",
+                PowerType.REVERSE
+            )
+        }
     }
 
     @Test
@@ -50,7 +56,12 @@ class PowerManagerTest {
     @Test
     fun `el comodin permite jugar una ficha que no coincide`() {
         val start = game(listOf(tile(0, 1), tile(5, 5)), listOf(tile(6, 6)))
-        val s = engine.playTile(engine.activatePower(start, "a", PowerType.WILDCARD), "a", tile(0, 1).id, BoardSide.RIGHT)
+        val s = engine.playTile(
+            engine.activatePower(start, "a", PowerType.WILDCARD),
+            "a",
+            tile(0, 1).id,
+            BoardSide.RIGHT
+        )
         assertEquals(2, s.board.size)
         assertEquals(PowerType.NONE, s.activePower)
     }
@@ -63,13 +74,21 @@ class PowerManagerTest {
 
     @Test
     fun `el salto hace que el siguiente jugador pierda el turno`() {
-        val s = engine.playTile(engine.activatePower(threePlayers(), "a", PowerType.SKIP), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            engine.activatePower(threePlayers(), "a", PowerType.SKIP),
+            "a",
+            tile(4, 5).id
+        )
         assertEquals(2, s.currentPlayerIndex) // salta a B y juega C
     }
 
     @Test
     fun `la inversion cambia el sentido de los turnos`() {
-        val s = engine.playTile(engine.activatePower(threePlayers(), "a", PowerType.REVERSE), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            engine.activatePower(threePlayers(), "a", PowerType.REVERSE),
+            "a",
+            tile(4, 5).id
+        )
         assertEquals(-1, s.direction)
         assertEquals(2, s.currentPlayerIndex)
     }
@@ -90,6 +109,12 @@ class PowerManagerTest {
     fun `con un intercambio pendiente no se puede jugar`() {
         val start = game(listOf(tile(0, 1), tile(4, 5)), listOf(tile(6, 6)))
         val active = engine.activatePower(start, "a", PowerType.SWAP)
-        assertFails("primero resuelve el intercambio") { engine.playTile(active, "a", tile(4, 5).id) }
+        assertFails("primero resuelve el intercambio") {
+            engine.playTile(
+                active,
+                "a",
+                tile(4, 5).id
+            )
+        }
     }
 }

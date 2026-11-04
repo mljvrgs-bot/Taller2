@@ -30,7 +30,10 @@ class MoveValidatorTest {
     fun `los lados validos dependen de a que extremo coincide`() {
         assertEquals(setOf(BoardSide.RIGHT), MoveValidator.validSides(tile(4, 5), state))
         assertEquals(setOf(BoardSide.LEFT), MoveValidator.validSides(tile(3, 0), state))
-        assertEquals(setOf(BoardSide.LEFT, BoardSide.RIGHT), MoveValidator.validSides(tile(3, 4), state))
+        assertEquals(
+            setOf(BoardSide.LEFT, BoardSide.RIGHT),
+            MoveValidator.validSides(tile(3, 4), state)
+        )
     }
 
     @Test

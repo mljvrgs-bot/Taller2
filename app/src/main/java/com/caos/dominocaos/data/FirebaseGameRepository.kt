@@ -29,12 +29,6 @@ class FirebaseGameRepository(
             .addOnFailureListener { onResult(Result.failure(it)) }
     }
 
-    fun loadGame(gameId: String, onResult: (Result<GameState?>) -> Unit) {
-        games.child(gameId).get()
-            .addOnSuccessListener { onResult(Result.success(readGame(it))) }
-            .addOnFailureListener { onResult(Result.failure(it)) }
-    }
-
     /** Escucha cambios en tiempo real. Devuelve una funcion para dejar de escuchar. */
     fun observeGame(
         gameId: String,
@@ -48,12 +42,6 @@ class FirebaseGameRepository(
         }
         ref.addValueEventListener(listener)
         return { ref.removeEventListener(listener) }
-    }
-
-    fun deleteGame(gameId: String, onResult: (Result<Unit>) -> Unit = {}) {
-        games.child(gameId).removeValue()
-            .addOnSuccessListener { onResult(Result.success(Unit)) }
-            .addOnFailureListener { onResult(Result.failure(it)) }
     }
 
     /** Crea una sala con el anfitrion dentro y devuelve el codigo. Reintenta si el codigo ya existe. */
@@ -89,20 +77,33 @@ class FirebaseGameRepository(
                 } ?: return Transaction.success(currentData)
 
                 when {
-                    game.players.any { it.id == player.id } -> return Transaction.success(currentData)
-                    game.started -> { failure = "La partida ya empezo."; return Transaction.abort() }
-                    game.players.size >= MAX_PLAYERS -> { failure = "La sala esta llena."; return Transaction.abort() }
+                    game.players.any { it.id == player.id } -> return Transaction.success(
+                        currentData
+                    )
+
+                    game.started -> {
+                        failure = "La partida ya empezo."; return Transaction.abort()
+                    }
+
+                    game.players.size >= MAX_PLAYERS -> {
+                        failure = "La sala esta llena."; return Transaction.abort()
+                    }
                 }
                 currentData.value = game.copy(players = game.players + player)
                 return Transaction.success(currentData)
             }
 
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                snapshot: DataSnapshot?
+            ) {
                 when {
                     error != null -> onResult(Result.failure(error.toException()))
                     failure != null -> onResult(Result.failure(IllegalStateException(failure)))
                     snapshot == null || !snapshot.exists() ->
                         onResult(Result.failure(IllegalStateException("No existe una partida con ese codigo.")))
+
                     else -> onResult(Result.success(Unit))
                 }
             }
@@ -119,12 +120,21 @@ class FirebaseGameRepository(
                 } ?: return Transaction.success(currentData)
 
                 if (game.hostId == playerId) currentData.value = null   // borra la sala
-                else currentData.value = game.copy(players = game.players.filterNot { it.id == playerId })
+                else currentData.value =
+                    game.copy(players = game.players.filterNot { it.id == playerId })
                 return Transaction.success(currentData)
             }
 
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                onResult(if (error != null) Result.failure(error.toException()) else Result.success(Unit))
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                snapshot: DataSnapshot?
+            ) {
+                onResult(
+                    if (error != null) Result.failure(error.toException()) else Result.success(
+                        Unit
+                    )
+                )
             }
         })
     }

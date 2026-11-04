@@ -29,5 +29,11 @@ data class GameState(
     @get:Exclude
     val isBlocked: Boolean
         get() = !finished && drawPile.isEmpty() &&
-                players.all { p -> p.hand.none { it.matches(leftEnd ?: -1) || it.matches(rightEnd ?: -1) } }
+                players.all { p ->
+                    p.hand.none {
+                        it.matches(leftEnd ?: -1) || it.matches(
+                            rightEnd ?: -1
+                        )
+                    }
+                }
 }

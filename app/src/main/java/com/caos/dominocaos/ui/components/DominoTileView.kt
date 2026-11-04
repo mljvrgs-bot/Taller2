@@ -93,9 +93,19 @@ fun DominoTileView(
 
 private fun DrawScope.drawDivider(horizontal: Boolean, color: Color) {
     if (horizontal) {
-        drawLine(color, Offset(size.width / 2f, size.height * 0.15f), Offset(size.width / 2f, size.height * 0.85f), 1.5f)
+        drawLine(
+            color,
+            Offset(size.width / 2f, size.height * 0.15f),
+            Offset(size.width / 2f, size.height * 0.85f),
+            1.5f
+        )
     } else {
-        drawLine(color, Offset(size.width * 0.15f, size.height / 2f), Offset(size.width * 0.85f, size.height / 2f), 1.5f)
+        drawLine(
+            color,
+            Offset(size.width * 0.15f, size.height / 2f),
+            Offset(size.width * 0.85f, size.height / 2f),
+            1.5f
+        )
     }
 }
 

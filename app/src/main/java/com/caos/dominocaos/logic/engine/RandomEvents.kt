@@ -30,19 +30,23 @@ object RandomEvents {
             RandomEventType.STORM -> {
                 var pile = state.drawPile
                 val players = state.players.map { p ->
-                    if (pile.isEmpty()) p else p.copy(hand = p.hand + pile.first()).also { pile = pile.drop(1) }
+                    if (pile.isEmpty()) p else p.copy(hand = p.hand + pile.first())
+                        .also { pile = pile.drop(1) }
                 }
                 state.copy(players = players, drawPile = pile) to
                         "Tormenta de fichas: todos los jugadores roban una ficha del pozo."
             }
+
             RandomEventType.DOUBLE_POINTS ->
                 state.copy(doublePointsNextTurn = true) to
                         "Puntos dobles: la proxima jugada vale el doble."
+
             RandomEventType.LOST_TURN -> {
                 val next = ((state.currentPlayerIndex + state.direction) % n + n) % n
                 state.copy(currentPlayerIndex = next) to
                         "Turno perdido: ${current.name} pierde su turno."
             }
+
             RandomEventType.BONUS ->
                 state.copy(players = state.players.map {
                     if (it.id == current.id) it.copy(score = it.score + BONUS_POINTS) else it
@@ -50,7 +54,10 @@ object RandomEvents {
         }
         return changed.copy(
             lastEventTurn = state.turn,
-            events = EventManager.append(state.events, EventManager.create(type.code, message, current.id))
+            events = EventManager.append(
+                state.events,
+                EventManager.create(type.code, message, current.id)
+            )
         )
     }
 }

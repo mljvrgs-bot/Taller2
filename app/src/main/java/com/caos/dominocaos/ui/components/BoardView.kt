@@ -36,7 +36,9 @@ fun BoardView(
     onSideClick: (BoardSide) -> Unit = {}
 ) {
     BoxWithConstraints(
-        modifier = modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 4.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         if (board.isEmpty() && highlightSides.isEmpty()) {
@@ -47,7 +49,11 @@ fun BoardView(
             )
         } else {
             val cells = buildList<BoardCell> {
-                if (board.isNotEmpty() && BoardSide.LEFT in highlightSides) add(BoardCell.TargetCell(BoardSide.LEFT))
+                if (board.isNotEmpty() && BoardSide.LEFT in highlightSides) add(
+                    BoardCell.TargetCell(
+                        BoardSide.LEFT
+                    )
+                )
                 board.forEach { add(BoardCell.TileCell(it)) }
                 if (BoardSide.RIGHT in highlightSides) add(BoardCell.TargetCell(BoardSide.RIGHT))
             }
@@ -63,15 +69,22 @@ fun BoardView(
                     val reversed = rowIndex % 2 == 1
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(gap, if (reversed) Alignment.End else Alignment.Start)
+                        horizontalArrangement = Arrangement.spacedBy(
+                            gap,
+                            if (reversed) Alignment.End else Alignment.Start
+                        )
                     ) {
                         (if (reversed) rowCells.reversed() else rowCells).forEach { cell ->
                             when (cell) {
                                 is BoardCell.TileCell -> DominoTileView(
-                                    tile = if (reversed) cell.tile.copy(left = cell.tile.right, right = cell.tile.left) else cell.tile,
+                                    tile = if (reversed) cell.tile.copy(
+                                        left = cell.tile.right,
+                                        right = cell.tile.left
+                                    ) else cell.tile,
                                     horizontal = true,
                                     size = tileSize
                                 )
+
                                 is BoardCell.TargetCell -> SideTarget(
                                     width = tileSize * 2,
                                     height = tileSize,
@@ -103,13 +116,19 @@ private fun fitTileSize(count: Int, maxW: Dp, maxH: Dp, gap: Dp): Dp {
 @Composable
 private fun SideTarget(width: Dp, height: Dp, onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.size(width = width, height = height).clickable(onClick = onClick),
+        modifier = Modifier
+            .size(width = width, height = height)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text("+", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "+",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }

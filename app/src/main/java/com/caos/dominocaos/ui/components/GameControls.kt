@@ -27,7 +27,9 @@ fun GameControls(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(onClick = onDraw, enabled = canDraw) { Text("Robar ($drawPileSize)") }

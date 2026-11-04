@@ -17,6 +17,7 @@ data class RoomUiState(
     val closed: Boolean = false      // el anfitrion cerro la sala
 ) {
     val isHost: Boolean get() = game != null && game.hostId == myId
+
     /** El anfitrion puede iniciar con 2 o mas jugadores y mientras la sala no haya empezado. */
     val canStart: Boolean get() = isHost && game != null && !game.started && game.players.size >= 2
 }
@@ -27,7 +28,8 @@ class RoomViewModel : ViewModel() {
     private val repo = FirebaseGameRepository()
     private val engine = GameEngine()
 
-    private val _ui = MutableStateFlow(RoomUiState(myId = FirebaseAuthRepository().currentUser()?.uid ?: ""))
+    private val _ui =
+        MutableStateFlow(RoomUiState(myId = FirebaseAuthRepository().currentUser()?.uid ?: ""))
     val ui: StateFlow<RoomUiState> = _ui.asStateFlow()
 
     private var stopObserving: (() -> Unit)? = null

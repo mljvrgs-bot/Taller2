@@ -38,7 +38,10 @@ class RandomEventsTest {
 
     @Test
     fun `lluvia de puntos suma 5 al jugador en turno`() {
-        assertEquals(RandomEvents.BONUS_POINTS, RandomEvents.apply(base, RandomEventType.BONUS).players[0].score)
+        assertEquals(
+            RandomEvents.BONUS_POINTS,
+            RandomEvents.apply(base, RandomEventType.BONUS).players[0].score
+        )
     }
 
     @Test
@@ -51,7 +54,11 @@ class RandomEventsTest {
     @Test
     fun `no hay eventos antes del turno 2`() {
         val engine = GameEngine(Random(1), eventChance = 100)
-        val s = engine.playTile(game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))),
+            "a",
+            tile(4, 5).id
+        )
         assertTrue(s.events.none { it.type.startsWith("EVENT_") })
     }
 

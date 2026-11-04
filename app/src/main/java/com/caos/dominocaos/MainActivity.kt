@@ -1,70 +1,28 @@
 package com.caos.dominocaos
 
 import android.os.Bundle
-import android.graphics.Color as AndroidColor
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.caos.dominocaos.ui.theme.DominoCaosTheme
-import com.google.firebase.FirebaseApp
-import androidx.activity.SystemBarStyle
 import com.caos.dominocaos.ui.navigation.AppNavigation
+import com.caos.dominocaos.ui.theme.DominoCaosTheme
+import android.graphics.Color as AndroidColor
 
+/** Unica actividad de la app: aloja el tema y el grafo de navegacion. */
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // La app es siempre oscura: iconos claros en las barras del sistema.
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
-
-        val firebaseStatus = try {
-            val app = FirebaseApp.initializeApp(this)
-
-            if (app != null) {
-                "Firebase se inicializó correctamente."
-            } else {
-                "No se encontró la configuración de Firebase."
-            }
-        } catch (e: Exception) {
-            "Error al iniciar Firebase: ${e.message}"
-        }
-
         setContent {
             DominoCaosTheme {
                 AppNavigation()
             }
         }
-    }
-}
-
-@Composable
-fun FirebaseTestScreen(
-    status: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Domino Caos")
-        Text(
-            text = status,
-            modifier = Modifier.padding(top = 16.dp)
-        )
     }
 }

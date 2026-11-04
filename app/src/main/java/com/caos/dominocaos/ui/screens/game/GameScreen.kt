@@ -1,5 +1,6 @@
 package com.caos.dominocaos.ui.screens.game
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +18,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -28,9 +31,6 @@ import com.caos.dominocaos.ui.components.PlayerHand
 import com.caos.dominocaos.ui.components.PlayerInfoBar
 import com.caos.dominocaos.ui.components.PowerBar
 import com.caos.dominocaos.viewmodel.GameViewModel
-import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 
 @Composable
 fun GameScreen(
@@ -84,7 +84,9 @@ fun GameScreen(
 
             // Tablero: ocupa el espacio sobrante.
             Box(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 BoardView(
@@ -163,7 +165,11 @@ fun GameScreen(
                     onLeave()
                 }) { Text("Abandonar") }
             },
-            dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("Seguir jugando") } }
+            dismissButton = {
+                TextButton(onClick = {
+                    confirmLeave = false
+                }) { Text("Seguir jugando") }
+            }
         )
     }
 

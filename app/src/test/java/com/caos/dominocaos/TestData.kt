@@ -16,7 +16,8 @@ fun game(
     c: List<Tile>? = null,
     pile: List<Tile> = emptyList()
 ): GameState {
-    val players = listOfNotNull(Player("a", "A", a), Player("b", "B", b), c?.let { Player("c", "C", it) })
+    val players =
+        listOfNotNull(Player("a", "A", a), Player("b", "B", b), c?.let { Player("c", "C", it) })
     return GameState(
         gameId = "test", players = players, drawPile = pile,
         board = listOf(tile(3, 4)), leftEnd = 3, rightEnd = 4

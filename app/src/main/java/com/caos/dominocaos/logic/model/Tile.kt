@@ -1,7 +1,7 @@
 package com.caos.dominocaos.logic.model
 
-import kotlin.math.max
 import com.google.firebase.database.Exclude
+import kotlin.math.max
 
 /**
  * Ficha de dominó. El identificador es estable (por ejemplo, "6-3").
@@ -14,6 +14,7 @@ data class Tile(val left: Int = 0, val right: Int = 0, val id: String = canonica
 
     @get:Exclude
     val isDouble: Boolean get() = left == right
+
     @get:Exclude
     val points: Int get() = left + right
 

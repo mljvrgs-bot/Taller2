@@ -2,10 +2,10 @@ package com.caos.dominocaos.viewmodel
 
 import com.caos.dominocaos.logic.engine.BoardSide
 import com.caos.dominocaos.logic.engine.MoveValidator
+import com.caos.dominocaos.logic.model.GameEvent
 import com.caos.dominocaos.logic.model.GameState
 import com.caos.dominocaos.logic.model.Player
 import com.caos.dominocaos.logic.model.PowerType
-import com.caos.dominocaos.logic.model.GameEvent
 
 data class GameUiState(
     val game: GameState,
@@ -34,7 +34,10 @@ data class GameUiState(
         }
 
     val canDraw: Boolean
-        get() = isMyTurn && game.drawPile.isNotEmpty() && !MoveValidator.hasNaturalMove(me.hand, game)
+        get() = isMyTurn && game.drawPile.isNotEmpty() && !MoveValidator.hasNaturalMove(
+            me.hand,
+            game
+        )
 
     val canPass: Boolean
         get() = isMyTurn && game.drawPile.isEmpty() && !MoveValidator.hasNaturalMove(me.hand, game)

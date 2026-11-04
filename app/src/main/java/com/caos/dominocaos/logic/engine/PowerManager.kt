@@ -23,7 +23,11 @@ object PowerManager {
             activePower = power,
             events = EventManager.append(
                 state.events,
-                EventManager.create("POWER_ACTIVATED", "${player.name} activo ${label(power)}.", player.id)
+                EventManager.create(
+                    "POWER_ACTIVATED",
+                    "${player.name} activo ${label(power)}.",
+                    player.id
+                )
             )
         )
     }
@@ -47,9 +51,11 @@ object PowerManager {
         val me = state.currentPlayer ?: error("No hay jugador activo.")
         check(me.id == playerId) { "No es el turno de este jugador." }
         check(opponentId != playerId) { "Elige a un oponente." }
-        val opponent = state.players.firstOrNull { it.id == opponentId } ?: error("El oponente no existe.")
+        val opponent =
+            state.players.firstOrNull { it.id == opponentId } ?: error("El oponente no existe.")
         check(opponent.hand.isNotEmpty()) { "El oponente no tiene fichas." }
-        val own = me.hand.firstOrNull { it.id == ownTileId } ?: error("La ficha no esta en tu mano.")
+        val own =
+            me.hand.firstOrNull { it.id == ownTileId } ?: error("La ficha no esta en tu mano.")
         val taken = opponent.hand.random(random)
 
         val players = state.players.map {
@@ -64,7 +70,11 @@ object PowerManager {
             activePower = PowerType.NONE,
             events = EventManager.append(
                 state.events,
-                EventManager.create("POWER_SWAP", "${me.name} intercambio una ficha con ${opponent.name}.", me.id)
+                EventManager.create(
+                    "POWER_SWAP",
+                    "${me.name} intercambio una ficha con ${opponent.name}.",
+                    me.id
+                )
             )
         )
     }
@@ -77,7 +87,12 @@ object PowerManager {
         PowerType.REVERSE -> "Inversion"
     }
 
-    private fun applyUses(state: GameState, playerId: String, delta: Int, power: PowerType): GameState =
+    private fun applyUses(
+        state: GameState,
+        playerId: String,
+        delta: Int,
+        power: PowerType
+    ): GameState =
         state.copy(players = state.players.map { p ->
             if (p.id != playerId || power == PowerType.NONE) p
             else p.copy(

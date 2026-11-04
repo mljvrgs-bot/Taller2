@@ -27,7 +27,11 @@ class GameEngineTest {
 
     @Test
     fun `jugar una ficha valida actualiza el extremo y pasa el turno`() {
-        val s = engine.playTile(game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))),
+            "a",
+            tile(4, 5).id
+        )
         assertEquals(5, s.rightEnd)
         assertEquals(1, s.currentPlayerIndex)
         assertEquals(1, s.players[0].hand.size)
@@ -49,13 +53,20 @@ class GameEngineTest {
 
     @Test
     fun `cada jugada suma los puntos de la ficha`() {
-        val s = engine.playTile(game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))),
+            "a",
+            tile(4, 5).id
+        )
         assertEquals(9, s.players[0].score)
     }
 
     @Test
     fun `con puntos dobles la jugada vale el doble`() {
-        val start = game(listOf(tile(4, 5), tile(1, 1)), listOf(tile(6, 6))).copy(doublePointsNextTurn = true)
+        val start = game(
+            listOf(tile(4, 5), tile(1, 1)),
+            listOf(tile(6, 6))
+        ).copy(doublePointsNextTurn = true)
         val s = engine.playTile(start, "a", tile(4, 5).id)
         assertEquals(18, s.players[0].score)
         assertFalse(s.doublePointsNextTurn)
@@ -64,13 +75,19 @@ class GameEngineTest {
     @Test
     fun `no se puede robar si hay una jugada valida`() {
         assertFails("tiene 4|5") {
-            engine.drawTile(game(listOf(tile(4, 5)), listOf(tile(0, 0)), pile = listOf(tile(1, 1))), "a")
+            engine.drawTile(
+                game(listOf(tile(4, 5)), listOf(tile(0, 0)), pile = listOf(tile(1, 1))),
+                "a"
+            )
         }
     }
 
     @Test
     fun `sin jugada valida el jugador roba del pozo`() {
-        val s = engine.drawTile(game(listOf(tile(0, 1)), listOf(tile(0, 0)), pile = listOf(tile(1, 1))), "a")
+        val s = engine.drawTile(
+            game(listOf(tile(0, 1)), listOf(tile(0, 0)), pile = listOf(tile(1, 1))),
+            "a"
+        )
         assertEquals(2, s.players[0].hand.size)
         assertTrue(s.drawPile.isEmpty())
     }
@@ -78,7 +95,10 @@ class GameEngineTest {
     @Test
     fun `no se puede pasar mientras queden fichas en el pozo`() {
         assertFails("debe robar antes de pasar") {
-            engine.passTurn(game(listOf(tile(0, 1)), listOf(tile(0, 2)), pile = listOf(tile(1, 1))), "a")
+            engine.passTurn(
+                game(listOf(tile(0, 1)), listOf(tile(0, 2)), pile = listOf(tile(1, 1))),
+                "a"
+            )
         }
     }
 
@@ -91,7 +111,11 @@ class GameEngineTest {
     @Test
     fun `quedarse sin fichas da el bonus de las manos rivales y termina`() {
         // a juega 4|5 (+9) y recibe 6+6 + 1+2 = 15 de bonus
-        val s = engine.playTile(game(listOf(tile(4, 5)), listOf(tile(6, 6), tile(1, 2))), "a", tile(4, 5).id)
+        val s = engine.playTile(
+            game(listOf(tile(4, 5)), listOf(tile(6, 6), tile(1, 2))),
+            "a",
+            tile(4, 5).id
+        )
         assertTrue(s.finished)
         assertEquals(24, s.players[0].score)
         assertEquals("a", s.winnerId)
@@ -115,7 +139,14 @@ class GameEngineTest {
 
     @Test
     fun `empate total no tiene ganador`() {
-        assertNull(engine.winnerOf(listOf(Player("a", "A", score = 5), Player("b", "B", score = 5))))
+        assertNull(
+            engine.winnerOf(
+                listOf(
+                    Player("a", "A", score = 5),
+                    Player("b", "B", score = 5)
+                )
+            )
+        )
     }
 
     @Test
@@ -148,7 +179,8 @@ class GameEngineTest {
 
     @Test
     fun `abandonar una partida terminada no cambia nada`() {
-        val done = game(listOf(tile(4, 5)), listOf(tile(6, 6))).copy(finished = true, winnerId = "a")
+        val done =
+            game(listOf(tile(4, 5)), listOf(tile(6, 6))).copy(finished = true, winnerId = "a")
         assertEquals(done, engine.abandon(done, "b"))
     }
 }
