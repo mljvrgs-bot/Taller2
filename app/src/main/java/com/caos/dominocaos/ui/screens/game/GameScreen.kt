@@ -76,6 +76,14 @@ fun GameScreen(
                     onSideClick = viewModel::onSideClick
                 )
             }
+            state.game.events.lastOrNull()?.let {
+                Text(
+                    text = it.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
 
             state.hint?.let {
                 Text(
@@ -116,12 +124,19 @@ fun GameScreen(
         }
     }
 
-    // Fin de partida: resultado y opciones.
     if (state.game.finished) {
         val winner = state.winner
         AlertDialog(
             onDismissRequest = {},
-            title = { Text(if (winner?.id == state.myId) "Ganaste" else "Gano ${winner?.name ?: "nadie"}") },
+            title = {
+                Text(
+                    when {
+                        winner == null -> "Empate"
+                        winner.id == state.myId -> "Ganaste"
+                        else -> "Gano ${winner.name}"
+                    }
+                )
+            },
             text = { Text(state.game.players.joinToString("\n") { "${it.name}: ${it.score} puntos" }) },
             confirmButton = { TextButton(onClick = viewModel::restart) { Text("Jugar de nuevo") } },
             dismissButton = { TextButton(onClick = onLeave) { Text("Salir") } }
