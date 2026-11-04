@@ -17,7 +17,11 @@ data class GameState(
     val doublePointsNextTurn: Boolean = false,
     val activePower: PowerType = PowerType.NONE,
     val hostId: String = "",
-    val started: Boolean = false
+    val started: Boolean = false,
+    val started: Boolean = false,
+    val turn: Int = 0,
+    val maxRounds: Int = 10,
+    val lastEventTurn: Int = -10
 ) {
     @get:Exclude
     val currentPlayer: Player?

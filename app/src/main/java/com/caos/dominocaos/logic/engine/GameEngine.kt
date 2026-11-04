@@ -4,7 +4,13 @@ import com.caos.dominocaos.logic.model.*
 import java.util.UUID
 import kotlin.random.Random
 
-class GameEngine(private val random: Random = Random.Default) {
+class GameEngine(
+    private val random: Random = Random.Default,
+    private val eventChance: Int = DEFAULT_EVENT_CHANCE
+) {
+    companion object {
+        const val DEFAULT_EVENT_CHANCE = 35
+    }
 
     fun newGame(
         playerNames: List<Pair<String, String>>,
@@ -96,7 +102,7 @@ class GameEngine(private val random: Random = Random.Default) {
             players = players, board = newBoard, leftEnd = newLeft, rightEnd = newRight,
             events = events, doublePointsNextTurn = false
         )
-        return advanceTurn(moved)
+        return afterTurn(advanceTurn(moved))
     }
 
     fun drawTile(state: GameState, playerId: String): GameState {
@@ -130,7 +136,8 @@ class GameEngine(private val random: Random = Random.Default) {
                 EventManager.create("TURN_PASSED", "${player.name} paso el turno.", player.id)
             )
         )
-        val newState = advanceTurn(logged)
+        val newState = afterTurn(advanceTurn(logged))
+        if (newState.finished) return newState
         val blocked = newState.players.all { !MoveValidator.hasNaturalMove(it.hand, newState) }
         if (!blocked) return newState
         val lowest = newState.players.minByOrNull { p -> p.hand.sumOf(Tile::points) }
@@ -170,6 +177,20 @@ class GameEngine(private val random: Random = Random.Default) {
         val steps = if (state.activePower == PowerType.SKIP) 2 else 1
         val n = state.players.size
         val next = ((state.currentPlayerIndex + direction * steps) % n + n) % n
-        return state.copy(currentPlayerIndex = next, direction = direction, activePower = PowerType.NONE)
+        return state.copy(currentPlayerIndex = next, direction = direction, activePower = PowerType.NONE, turn = state.turn + 1)
+    }
+
+    private fun afterTurn(state: GameState): GameState {
+        if (state.turn >= state.maxRounds * state.players.size) {
+            return finish(
+                state.copy(
+                    events = EventManager.append(
+                        state.events,
+                        EventManager.create("MAX_ROUNDS", "Se alcanzo el maximo de ${state.maxRounds} rondas.")
+                    )
+                )
+            )
+        }
+        return RandomEvents.maybeTrigger(state, random, eventChance)
     }
 }
