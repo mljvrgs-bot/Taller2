@@ -28,6 +28,9 @@ import com.caos.dominocaos.ui.components.PlayerHand
 import com.caos.dominocaos.ui.components.PlayerInfoBar
 import com.caos.dominocaos.ui.components.PowerBar
 import com.caos.dominocaos.viewmodel.GameViewModel
+import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 @Composable
 fun GameScreen(
@@ -37,6 +40,7 @@ fun GameScreen(
 ) {
     val stateOrNull by viewModel.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    var confirmLeave by remember { mutableStateOf(false) }
 
     LaunchedEffect(gameCode) { viewModel.start(gameCode) }
 
@@ -45,6 +49,16 @@ fun GameScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text("Cargando...") }
         return
     }
+
+    // Salir (boton o atras): pide confirmacion si la partida sigue en curso.
+    val requestLeave: () -> Unit = {
+        if (state.game.finished) {
+            onLeave()
+        } else {
+            confirmLeave = true
+        }
+    }
+    BackHandler(onBack = requestLeave)
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         Column(
@@ -122,7 +136,7 @@ fun GameScreen(
                 onDraw = viewModel::onDraw,
                 onPass = viewModel::onPass,
                 onRestart = viewModel::restart,
-                onLeave = onLeave
+                onLeave = requestLeave
             )
         }
     }
@@ -136,6 +150,24 @@ fun GameScreen(
         )
     }
 
+    // Confirmacion para abandonar.
+    if (confirmLeave) {
+        AlertDialog(
+            onDismissRequest = { confirmLeave = false },
+            title = { Text("Abandonar la partida") },
+            text = { Text("Si sales ahora, la partida se pierde.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmLeave = false
+                    viewModel.leave()
+                    onLeave()
+                }) { Text("Abandonar") }
+            },
+            dismissButton = { TextButton(onClick = { confirmLeave = false }) { Text("Seguir jugando") } }
+        )
+    }
+
+    // Fin de partida (normal o por abandono): resultado y opciones.
     if (state.game.finished) {
         val winner = state.winner
         AlertDialog(
@@ -149,9 +181,20 @@ fun GameScreen(
                     }
                 )
             },
-            text = { Text(state.game.players.joinToString("\n") { "${it.name}: ${it.score} puntos" }) },
-            confirmButton = { TextButton(onClick = viewModel::restart) { Text("Jugar de nuevo") } },
-            dismissButton = { TextButton(onClick = onLeave) { Text("Salir") } }
+            text = {
+                Text(
+                    state.game.events.lastOrNull()?.message.orEmpty() + "\n\n" +
+                            state.game.players.joinToString("\n") { "${it.name}: ${it.score} puntos" }
+                )
+            },
+            confirmButton = {
+                // Tras un abandono falta un jugador, asi que no se ofrece jugar de nuevo.
+                if (state.abandoned) TextButton(onClick = onLeave) { Text("Salir") }
+                else TextButton(onClick = viewModel::restart) { Text("Jugar de nuevo") }
+            },
+            dismissButton = {
+                if (!state.abandoned) TextButton(onClick = onLeave) { Text("Salir") }
+            }
         )
     }
 }

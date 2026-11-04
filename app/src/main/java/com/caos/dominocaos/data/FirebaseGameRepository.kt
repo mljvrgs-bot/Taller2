@@ -109,6 +109,26 @@ class FirebaseGameRepository(
         })
     }
 
+    fun leaveRoom(code: String, playerId: String, onResult: (Result<Unit>) -> Unit = {}) {
+        games.child(code).runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                val game = try {
+                    currentData.getValue(GameState::class.java)
+                } catch (e: Exception) {
+                    null
+                } ?: return Transaction.success(currentData)
+
+                if (game.hostId == playerId) currentData.value = null   // borra la sala
+                else currentData.value = game.copy(players = game.players.filterNot { it.id == playerId })
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                onResult(if (error != null) Result.failure(error.toException()) else Result.success(Unit))
+            }
+        })
+    }
+
     /** Lee una partida sin romper la app si los datos tienen un formato viejo. */
     private fun readGame(snapshot: DataSnapshot): GameState? =
         try {

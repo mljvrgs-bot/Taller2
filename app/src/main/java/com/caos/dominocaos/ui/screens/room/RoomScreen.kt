@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.caos.dominocaos.viewmodel.RoomViewModel
+import androidx.activity.compose.BackHandler
 
 /** Sala de espera: codigo para compartir, jugadores conectados y boton de inicio para el anfitrion. */
 @Composable
@@ -35,6 +36,10 @@ fun RoomScreen(
     LaunchedEffect(state.game?.started) {
         if (state.game?.started == true) onStarted()
     }
+    // Si el anfitrion cierra la sala, los invitados vuelven al lobby.
+    LaunchedEffect(state.closed) { if (state.closed) onLeave() }
+    // Salir (boton o atras) saca al jugador de la sala; si es el anfitrion, la cierra.
+    BackHandler { viewModel.leave(onLeave) }
 
     Scaffold { padding ->
         Column(
@@ -62,7 +67,7 @@ fun RoomScreen(
             } else {
                 Text("Esperando a que el anfitrion inicie...", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            TextButton(onClick = onLeave) { Text("Salir") }
+            TextButton(onClick = { viewModel.leave(onLeave) }) { Text("Salir") }
         }
     }
 }

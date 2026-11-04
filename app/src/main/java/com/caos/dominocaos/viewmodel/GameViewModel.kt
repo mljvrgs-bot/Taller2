@@ -151,6 +151,14 @@ class GameViewModel : ViewModel() {
         repo.saveGame(fresh)
     }
 
+    fun leave() {
+        val s = _ui.value ?: return
+        if (gameCode == null || s.game.finished) return
+        val ended = engine.abandon(s.game, s.myId)
+        _ui.value = s.copy(game = ended)
+        repo.saveGame(ended)
+    }
+
     fun dismissMessage() = _ui.update { it?.copy(message = null) }
     fun dismissEvent() = _ui.update { it?.copy(seenEventId = it.lastRandomEvent?.id) }
 
