@@ -58,4 +58,12 @@ class GameUiStateTest {
         assertNull(ui(g).copy(seenEventId = "e1").pendingEvent)
         assertNull(ui(g.copy(finished = true)).pendingEvent)
     }
+
+    @Test
+    fun `abandoned es true solo cuando el ultimo evento es un abandono`() {
+        val g = game(listOf(tile(4, 5)), listOf(tile(6, 6)))
+        assertFalse(ui(g).abandoned)
+        val left = GameEvent(id = "x", type = "ABANDONED", message = "B abandono la partida.")
+        assertTrue(ui(g.copy(events = listOf(left), finished = true)).abandoned)
+    }
 }

@@ -130,4 +130,25 @@ class GameEngineTest {
         assertTrue(afterB.finished)
         assertEquals(2, afterB.turn)
     }
+
+    @Test
+    fun `abandonar termina la partida y gana el rival`() {
+        val s = engine.abandon(game(listOf(tile(4, 5)), listOf(tile(6, 6))), "a")
+        assertTrue(s.finished)
+        assertEquals("b", s.winnerId)
+        assertEquals("ABANDONED", s.events.last().type)
+    }
+
+    @Test
+    fun `con tres jugadores gana el mayor puntaje entre los que se quedan`() {
+        val start = game(listOf(tile(4, 5)), listOf(tile(6, 6)), listOf(tile(2, 2)))
+            .withScore("b", 5).withScore("c", 9).withScore("a", 50)
+        assertEquals("c", engine.abandon(start, "a").winnerId)
+    }
+
+    @Test
+    fun `abandonar una partida terminada no cambia nada`() {
+        val done = game(listOf(tile(4, 5)), listOf(tile(6, 6))).copy(finished = true, winnerId = "a")
+        assertEquals(done, engine.abandon(done, "b"))
+    }
 }

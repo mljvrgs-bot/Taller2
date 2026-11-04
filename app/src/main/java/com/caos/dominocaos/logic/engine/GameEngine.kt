@@ -153,6 +153,22 @@ class GameEngine(
         )
     }
 
+    fun abandon(state: GameState, playerId: String): GameState {
+        if (state.finished) return state
+        val leaver = state.players.firstOrNull { it.id == playerId } ?: return state
+        val winner = winnerOf(state.players.filter { it.id != playerId })
+        val result = if (winner != null) "Gana ${winner.name}." else "Empate."
+        return state.copy(
+            finished = true,
+            winnerId = winner?.id,
+            activePower = PowerType.NONE,
+            events = EventManager.append(
+                state.events,
+                EventManager.create("ABANDONED", "${leaver.name} abandono la partida. $result", playerId)
+            )
+        )
+    }
+
     private fun finish(state: GameState): GameState {
         val winner = winnerOf(state.players)
         val message = if (winner != null) "Fin de la partida: gana ${winner.name} con ${winner.score} puntos."

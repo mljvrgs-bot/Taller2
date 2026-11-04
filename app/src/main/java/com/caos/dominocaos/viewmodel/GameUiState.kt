@@ -55,4 +55,6 @@ data class GameUiState(
 
     val pendingEvent: GameEvent?
         get() = lastRandomEvent?.takeIf { it.id != seenEventId && !game.finished }
+
+    val abandoned: Boolean get() = game.events.lastOrNull()?.type == "ABANDONED"
 }
