@@ -152,6 +152,7 @@ class GameViewModel : ViewModel() {
     }
 
     fun dismissMessage() = _ui.update { it?.copy(message = null) }
+    fun dismissEvent() = _ui.update { it?.copy(seenEventId = it.lastRandomEvent?.id) }
 
     override fun onCleared() {
         stopObserving?.invoke()
@@ -177,7 +178,6 @@ class GameViewModel : ViewModel() {
         }
     }
 
-    /** Estrategia simple: primera ficha valida; si no hay, roba; si no puede, pasa. */
     private fun botMove(game: GameState, botId: String): GameState {
         val me = game.currentPlayer ?: return game
         val tile = me.hand.firstOrNull { MoveValidator.canPlay(it, game, wildcard = false) }

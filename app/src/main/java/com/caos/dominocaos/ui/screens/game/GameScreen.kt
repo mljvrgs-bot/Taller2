@@ -29,7 +29,6 @@ import com.caos.dominocaos.ui.components.PlayerInfoBar
 import com.caos.dominocaos.ui.components.PowerBar
 import com.caos.dominocaos.viewmodel.GameViewModel
 
-/** Pantalla de juego. Solo dibuja el estado y reenvia los toques al ViewModel. */
 @Composable
 fun GameScreen(
     gameCode: String?,          // null = offline
@@ -39,7 +38,6 @@ fun GameScreen(
     val stateOrNull by viewModel.ui.collectAsState()
     val snackbar = remember { SnackbarHostState() }
 
-    // Carga la partida una sola vez (offline u online segun el codigo).
     LaunchedEffect(gameCode) { viewModel.start(gameCode) }
 
     val state = stateOrNull
@@ -56,7 +54,12 @@ fun GameScreen(
                 .padding(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Oponentes arriba (turno y puntaje siempre visibles, lo exige el enunciado).
+            Text(
+                text = "Ronda ${state.round}/${state.game.maxRounds}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
             state.opponents.forEach { opponent ->
                 PlayerInfoBar(
                     player = opponent,
@@ -122,6 +125,15 @@ fun GameScreen(
                 onLeave = onLeave
             )
         }
+    }
+
+    state.pendingEvent?.let { event ->
+        AlertDialog(
+            onDismissRequest = viewModel::dismissEvent,
+            title = { Text("Evento aleatorio") },
+            text = { Text(event.message) },
+            confirmButton = { TextButton(onClick = viewModel::dismissEvent) { Text("Continuar") } }
+        )
     }
 
     if (state.game.finished) {

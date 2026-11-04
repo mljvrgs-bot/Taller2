@@ -5,16 +5,14 @@ import com.caos.dominocaos.logic.engine.MoveValidator
 import com.caos.dominocaos.logic.model.GameState
 import com.caos.dominocaos.logic.model.Player
 import com.caos.dominocaos.logic.model.PowerType
+import com.caos.dominocaos.logic.model.GameEvent
 
-/**
- * Lo que la pantalla necesita para dibujarse. La UI solo lee estas propiedades,
- * asi no repite reglas del juego (todo se calcula con el motor).
- */
 data class GameUiState(
     val game: GameState,
     val myId: String,
     val selectedTileId: String? = null,
-    val message: String? = null
+    val message: String? = null,
+    val seenEventId: String? = null
 ) {
     val me: Player get() = game.players.first { it.id == myId }
     val opponents: List<Player> get() = game.players.filter { it.id != myId }
@@ -22,7 +20,6 @@ data class GameUiState(
 
     val isMyTurn: Boolean get() = !game.finished && game.currentPlayer?.id == myId
 
-    /** Fichas que se pueden tocar ahora (con Intercambio activo, todas las mias). */
     val playableIds: Set<String>
         get() = when {
             !isMyTurn -> emptySet()
@@ -30,7 +27,6 @@ data class GameUiState(
             else -> me.hand.filter { MoveValidator.canPlay(it, game) }.map { it.id }.toSet()
         }
 
-    /** Extremos donde se puede colocar la ficha seleccionada. */
     val highlightSides: Set<BoardSide>
         get() {
             val tile = me.hand.firstOrNull { it.id == selectedTileId } ?: return emptySet()
@@ -43,7 +39,6 @@ data class GameUiState(
     val canPass: Boolean
         get() = isMyTurn && game.drawPile.isEmpty() && !MoveValidator.hasNaturalMove(me.hand, game)
 
-    /** Texto de ayuda segun el poder activo. */
     val hint: String?
         get() = when (game.activePower) {
             PowerType.SWAP -> "Toca la ficha que quieres cambiar"
@@ -52,4 +47,12 @@ data class GameUiState(
             PowerType.REVERSE -> "Inversion activa: cambia el sentido"
             PowerType.NONE -> null
         }
+
+    val round: Int get() = minOf(game.turn / game.players.size + 1, game.maxRounds)
+
+    val lastRandomEvent: GameEvent?
+        get() = game.events.lastOrNull { it.type.startsWith("EVENT_") }
+
+    val pendingEvent: GameEvent?
+        get() = lastRandomEvent?.takeIf { it.id != seenEventId && !game.finished }
 }
