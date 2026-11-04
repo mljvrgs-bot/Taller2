@@ -47,16 +47,14 @@ class GameEngine(private val random: Random = Random.Default) {
         val tile = player.hand.firstOrNull { it.id == tileId } ?: error("La ficha no esta en la mano del jugador.")
         check(MoveValidator.canPlay(tile, state)) { "La ficha no coincide con ninguno de los extremos." }
 
-        // Lado por defecto: derecha, salvo que solo coincida con la izquierda.
         val actualSide = side ?: when {
             state.board.isEmpty() -> BoardSide.RIGHT
             tile.matches(state.rightEnd ?: -1) -> BoardSide.RIGHT
             tile.matches(state.leftEnd ?: -1) -> BoardSide.LEFT
-            else -> BoardSide.RIGHT // solo ocurre con Comodin
+            else -> BoardSide.RIGHT
         }
         check(actualSide in MoveValidator.validSides(tile, state)) { "La ficha no se puede colocar en ese extremo." }
 
-        // Con Comodin la ficha puede no coincidir: entonces se deja tal cual.
         val oriented = when {
             state.board.isEmpty() -> tile
             actualSide == BoardSide.RIGHT -> tile.orientedToMatch(state.rightEnd!!) ?: tile
@@ -69,26 +67,28 @@ class GameEngine(private val random: Random = Random.Default) {
         }
         val newLeft = if (state.board.isEmpty() || actualSide == BoardSide.LEFT) oriented.left else state.leftEnd
         val newRight = if (state.board.isEmpty() || actualSide == BoardSide.RIGHT) oriented.right else state.rightEnd
-
         val remainingHand = player.hand.filterNot { it.id == tile.id }
-        var players = state.players.map { if (it.id == player.id) it.copy(hand = remainingHand) else it }
+        val gained = if (state.doublePointsNextTurn) tile.points * 2 else tile.points
+        var players = state.players.map {
+            if (it.id == player.id) it.copy(hand = remainingHand, score = it.score + gained) else it
+        }
         var events = EventManager.append(
             state.events,
-            EventManager.create("TILE_PLAYED", "${player.name} jugo ${tile.left}|${tile.right}.", player.id)
+            EventManager.create("TILE_PLAYED", "${player.name} jugo ${tile.left}|${tile.right} (+$gained).", player.id)
         )
 
         if (remainingHand.isEmpty()) {
-            val points = players.filterNot { it.id == player.id }.sumOf { o -> o.hand.sumOf(Tile::points) }
-            val scored = if (state.doublePointsNextTurn) points * 2 else points
-            players = players.map { if (it.id == player.id) it.copy(score = it.score + scored) else it }
+            val bonus = players.filterNot { it.id == player.id }.sumOf { o -> o.hand.sumOf(Tile::points) }
+            players = players.map { if (it.id == player.id) it.copy(score = it.score + bonus) else it }
             events = EventManager.append(
                 events,
-                EventManager.create("GAME_FINISHED", "${player.name} gano la ronda y obtuvo $scored puntos.", player.id)
+                EventManager.create("BONUS", "${player.name} se quedo sin fichas y suma $bonus puntos extra.", player.id)
             )
-            return state.copy(
-                players = players, board = newBoard, leftEnd = newLeft, rightEnd = newRight,
-                finished = true, winnerId = player.id, events = events,
-                doublePointsNextTurn = false, activePower = PowerType.NONE
+            return finish(
+                state.copy(
+                    players = players, board = newBoard, leftEnd = newLeft, rightEnd = newRight,
+                    events = events, doublePointsNextTurn = false, activePower = PowerType.NONE
+                )
             )
         }
 
@@ -131,25 +131,38 @@ class GameEngine(private val random: Random = Random.Default) {
             )
         )
         val newState = advanceTurn(logged)
-
-        // Si nadie puede jugar, la ronda queda bloqueada: gana quien tenga menos puntos en mano.
         val blocked = newState.players.all { !MoveValidator.hasNaturalMove(it.hand, newState) }
         if (!blocked) return newState
-
-        val winner = newState.players.minByOrNull { p -> p.hand.sumOf(Tile::points) }
-        val updated = if (winner == null) newState.players else newState.players.map {
-            if (it.id == winner.id) {
-                it.copy(score = it.score + newState.players.filterNot { p -> p.id == winner.id }
-                    .sumOf { p -> p.hand.sumOf(Tile::points) })
-            } else it
+        val lowest = newState.players.minByOrNull { p -> p.hand.sumOf(Tile::points) }
+        val updated = newState.players.map { p ->
+            if (p.id != lowest?.id) p
+            else p.copy(score = p.score + newState.players.filterNot { it.id == p.id }.sumOf { o -> o.hand.sumOf(Tile::points) })
         }
-        return newState.copy(
-            players = updated, finished = true, winnerId = winner?.id,
-            events = EventManager.append(
-                newState.events,
-                EventManager.create("GAME_BLOCKED", "La partida quedo bloqueada; gano ${winner?.name ?: "nadie"}.", winner?.id)
+        return finish(
+            newState.copy(
+                players = updated,
+                events = EventManager.append(newState.events, EventManager.create("GAME_BLOCKED", "La partida quedo bloqueada."))
             )
         )
+    }
+
+    private fun finish(state: GameState): GameState {
+        val winner = winnerOf(state.players)
+        val message = if (winner != null) "Fin de la partida: gana ${winner.name} con ${winner.score} puntos."
+        else "Fin de la partida: empate."
+        return state.copy(
+            finished = true,
+            winnerId = winner?.id,
+            activePower = PowerType.NONE,
+            events = EventManager.append(state.events, EventManager.create("GAME_FINISHED", message, winner?.id))
+        )
+    }
+
+    fun winnerOf(players: List<Player>): Player? {
+        val sorted = players.sortedWith(compareByDescending<Player> { it.score }.thenBy { it.powersUsed })
+        val best = sorted.firstOrNull() ?: return null
+        val tied = sorted.count { it.score == best.score && it.powersUsed == best.powersUsed }
+        return if (tied > 1) null else best
     }
 
     private fun advanceTurn(state: GameState): GameState {
